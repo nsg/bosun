@@ -1,14 +1,8 @@
-mod config;
-mod proxy;
-
-use std::sync::Arc;
-
 use anyhow::Context;
-use axum::{Router, routing::get};
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
-use config::Config;
-use proxy::AppState;
+use bosun::build_app;
+use bosun::config::Config;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -28,28 +22,16 @@ async fn main() -> anyhow::Result<()> {
 
     let listen = config.listen.clone();
     let upstream = config.frigate.url.clone();
+    let key_count = config.api_keys.len();
 
-    let client = reqwest::Client::builder()
-        .build()
-        .context("building HTTP client")?;
-
-    let state = Arc::new(AppState { config, client });
-
-    let app = Router::new()
-        .route("/healthz", get(healthz))
-        .fallback(proxy::handler)
-        .with_state(state);
+    let app = build_app(config)?;
 
     let listener = tokio::net::TcpListener::bind(&listen)
         .await
         .with_context(|| format!("binding to {listen}"))?;
 
-    tracing::info!("Bosun listening on {listen}, proxying to {upstream}");
+    tracing::info!("Bosun listening on {listen}, proxying to {upstream} ({key_count} API key(s))");
 
     axum::serve(listener, app).await.context("server error")?;
     Ok(())
-}
-
-async fn healthz() -> &'static str {
-    "ok"
 }
