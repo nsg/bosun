@@ -1,0 +1,12 @@
+/target
+
+# Local secrets — SSH keys, credentials. Never commit.
+/.secrets/
+
+# Local runtime config (may hold API keys); ship bosun.example.toml instead.
+/bosun.toml
+
+# Sandbox / harness files, not part of Bosun.
+/.claude/
+/.claude-sandbox/
+/.mcp.json

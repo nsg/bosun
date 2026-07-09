@@ -1,0 +1,6 @@
+# Address Bosun listens on.
+listen = "0.0.0.0:8080"
+
+[frigate]
+# Base URL of the Frigate instance to proxy to.
+url = "http://localhost:5000"
