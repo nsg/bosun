@@ -1,0 +1,39 @@
+{
+  "listen": "0.0.0.0:8080",
+  "connect_timeout": 10,
+  "frigate": {
+    "url": "http://localhost:5000"
+  },
+  "api_keys": [
+    {
+      "name": "viewer",
+      "key": "change-me-viewer-key",
+      "rules": [
+        {
+          "methods": ["GET", "HEAD"],
+          "paths": [
+            "/api/events",
+            "/api/events/*",
+            "/api/events/*/thumbnail.*",
+            "/api/events/*/snapshot.jpg",
+            "/api/*/latest.*"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reviewer",
+      "key": "change-me-reviewer-key",
+      "rules": [
+        {
+          "methods": ["GET", "HEAD"],
+          "paths": ["/api/review", "/api/review/*"]
+        },
+        {
+          "methods": ["POST"],
+          "paths": ["/api/reviews/viewed"]
+        }
+      ]
+    }
+  ]
+}

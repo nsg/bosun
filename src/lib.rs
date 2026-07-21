@@ -14,6 +14,7 @@ use proxy::AppState;
 /// gated by the default-deny access-control middleware.
 pub fn build_app(config: Config) -> anyhow::Result<Router> {
     let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(config.connect_timeout))
         .build()
         .context("building HTTP client")?;
     let state = Arc::new(AppState { config, client });

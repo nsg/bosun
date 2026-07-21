@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
 
     let config_path = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "bosun.toml".into());
+        .unwrap_or_else(|| "bosun.json".into());
     let config =
         Config::load(&config_path).with_context(|| format!("loading config from {config_path}"))?;
 

@@ -7,6 +7,10 @@ use serde::Deserialize;
 pub struct Config {
     #[serde(default = "default_listen")]
     pub listen: String,
+    /// Seconds to wait when opening a connection to Frigate before giving up.
+    /// Bounds connection setup only, so it never truncates streamed responses.
+    #[serde(default = "default_connect_timeout")]
+    pub connect_timeout: u64,
     pub frigate: Frigate,
     #[serde(default, rename = "api_keys")]
     pub api_keys: Vec<ApiKey>,
@@ -44,14 +48,25 @@ fn default_listen() -> String {
     "0.0.0.0:8080".to_string()
 }
 
+fn default_connect_timeout() -> u64 {
+    10
+}
+
 impl Config {
+    /// Load config from `path`. JSON is the canonical format (produced by the
+    /// Home Assistant add-on UI). A `.toml` file is still parsed for backward
+    /// compatibility but is deprecated and logs a warning.
     pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let path = path.as_ref();
         let raw = std::fs::read_to_string(path).context("reading config file")?;
-        if path.extension().and_then(|e| e.to_str()) == Some("json") {
-            serde_json::from_str(&raw).context("parsing JSON config")
-        } else {
+        if path.extension().and_then(|e| e.to_str()) == Some("toml") {
+            tracing::warn!(
+                "TOML configuration is deprecated; configure Bosun through the \
+                 Home Assistant add-on UI or a JSON config file (see README)"
+            );
             toml::from_str(&raw).context("parsing TOML config")
+        } else {
+            serde_json::from_str(&raw).context("parsing JSON config")
         }
     }
 
@@ -289,6 +304,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(cfg.listen, "0.0.0.0:8080");
+        assert_eq!(cfg.connect_timeout, 10);
         assert!(cfg.api_keys.is_empty());
     }
 }
