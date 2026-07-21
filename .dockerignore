@@ -4,3 +4,4 @@ target
 bosun
 *.md
 bosun.toml
+bosun.json

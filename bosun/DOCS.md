@@ -17,32 +17,24 @@ the add-on shows an **Update** button.
 
 ## Configuration
 
-Example options:
+Everything is configured from the add-on's **Configuration** tab — no config
+files to edit. The form gives you the right control for each field:
 
-```yaml
-frigate_url: "http://homeassistant.local:5000"
-log_level: info
-api_keys:
-  - name: viewer
-    key: a-long-random-secret
-    rules:
-      - methods:
-          - GET
-          - HEAD
-        paths:
-          - /api/events
-          - /api/events/*
-          - /api/*/latest.*
-```
-
-### Options
-
-- **`frigate_url`** — Base URL of the Frigate instance to proxy to. If Frigate
-  runs as its own add-on, this is typically `http://<frigate-slug>:5000` or
+- **Frigate URL** — text field for Frigate's base URL. If Frigate runs as its
+  own add-on, this is typically `http://<frigate-slug>:5000` or
   `http://homeassistant.local:5000`.
-- **`log_level`** — One of `trace`, `debug`, `info`, `warn`, `error`.
-- **`api_keys`** — One entry per caller. Each has a `name`, a secret `key`
-  (sent by clients in the `X-API-Key` header), and a list of `rules`.
+- **Upstream connect timeout** — a slider (1–60 s) bounding how long Bosun waits
+  to connect to Frigate. It bounds connection setup only, so it never cuts off
+  snapshots or video streams.
+- **Log level** — a dropdown: `trace`, `debug`, `info`, `warn`, `error`.
+- **API keys** — an editable list, one entry per caller. Use **＋** to add a
+  key. Each key has:
+  - **name** — a label for the log.
+  - **key** — the secret clients send in the `X-API-Key` header (shown as a
+    masked password field).
+  - **rules** — an editable list of allow rules. Each rule has a set of
+    **methods** (dropdowns: `GET`, `HEAD`, `POST`, …, or `*` for any) and a set
+    of **paths** (glob patterns).
 
 ### Rules (default-deny)
 

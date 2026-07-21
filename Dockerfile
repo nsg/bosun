@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM alpine:3.20
 RUN apk add --no-cache jq
 COPY --from=build /bosun /usr/bin/bosun
-COPY bosun.example.toml /usr/share/bosun/bosun.example.toml
+COPY bosun.example.json /usr/share/bosun/bosun.example.json
 COPY docker/run.sh /run.sh
 RUN chmod +x /run.sh
 ENTRYPOINT ["/run.sh"]

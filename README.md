@@ -21,28 +21,40 @@ client ──X-API-Key──▶ Bosun ──(allow?)──▶ Frigate
 
 ## Configuration
 
-Bosun reads a TOML file (default `bosun.toml`, or pass a path as the first
-argument). See [`bosun.example.toml`](bosun.example.toml).
+Bosun is designed to run as a **[Home Assistant add-on](#home-assistant-add-on)**,
+where it is configured entirely through Home Assistant's native UI (see below).
 
-```toml
-listen = "0.0.0.0:8080"
+For standalone use, Bosun reads a JSON file (default `bosun.json`, or pass a path
+as the first argument). See [`bosun.example.json`](bosun.example.json).
 
-[frigate]
-url = "http://localhost:5000"
-
-[[api_keys]]
-name = "viewer"
-key = "change-me"
-
-  [[api_keys.rules]]
-  methods = ["GET", "HEAD"]
-  paths = ["/api/events", "/api/*/latest.*"]
+```json
+{
+  "listen": "0.0.0.0:8080",
+  "connect_timeout": 10,
+  "frigate": { "url": "http://localhost:5000" },
+  "api_keys": [
+    {
+      "name": "viewer",
+      "key": "change-me",
+      "rules": [
+        { "methods": ["GET", "HEAD"], "paths": ["/api/events", "/api/*/latest.*"] }
+      ]
+    }
+  ]
+}
 ```
+
+- **`connect_timeout`** — seconds to wait when opening a connection to Frigate
+  (connection setup only; never truncates streamed responses). Defaults to `10`.
+
+> **Deprecated:** TOML config files (`bosun.toml`) are still parsed for backward
+> compatibility but log a deprecation warning. Use JSON, or the Home Assistant
+> add-on UI.
 
 ### Rules
 
-Each `[[api_keys.rules]]` block binds a set of HTTP methods to a set of path
-patterns. A request is allowed when a single rule matches **both**:
+Each rule binds a set of HTTP methods to a set of path patterns. A request is
+allowed when a single rule matches **both**:
 
 - **`methods`** — HTTP verbs granted, case-insensitive. `"*"` matches any verb.
 - **`paths`** — path glob patterns:
@@ -56,13 +68,13 @@ matches. A key with no rules can access nothing.
 ## Running
 
 ```bash
-cargo run -- bosun.toml
+cargo run -- bosun.example.json
 ```
 
 Make an authenticated request (allowed by the `viewer` example rule):
 
 ```bash
-curl -H "X-API-Key: change-me" http://localhost:8080/api/events
+curl -H "X-API-Key: change-me-viewer-key" http://localhost:8080/api/events
 ```
 
 Health check (no auth required):
@@ -72,7 +84,7 @@ curl http://localhost:8080/healthz   # -> ok
 ```
 
 Logging verbosity is controlled with `RUST_LOG`, e.g.
-`RUST_LOG=bosun=debug cargo run -- bosun.toml`.
+`RUST_LOG=bosun=debug cargo run -- bosun.example.json`.
 
 ## Home Assistant add-on
 

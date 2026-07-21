@@ -1,5 +1,5 @@
 name: Bosun
-version: "0.1.0"
+version: "0.2.0"
 slug: bosun
 description: API-key gateway with a default-deny allowlist in front of Frigate
 url: https://github.com/nsg/bosun
@@ -13,9 +13,10 @@ startup: application
 ports:
   8080/tcp: 8080
 ports_description:
-  8080/tcp: Bosun HTTP listener (forwards permitted requests to Frigate)
+  8080/tcp: HTTP port clients use to reach Bosun
 options:
   frigate_url: "http://homeassistant.local:5000"
+  connect_timeout: 10
   log_level: info
   api_keys:
     - name: viewer
@@ -30,12 +31,13 @@ options:
             - /api/*/latest.*
 schema:
   frigate_url: url
-  log_level: "list(trace|debug|info|warn|error)?"
+  connect_timeout: int(1,60)
+  log_level: "list(trace|debug|info|warn|error)"
   api_keys:
     - name: str
-      key: str
+      key: password
       rules:
         - methods:
-            - str
+            - "list(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS|*)"
           paths:
             - str

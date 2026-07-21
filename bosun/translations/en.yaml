@@ -1,0 +1,24 @@
+configuration:
+  frigate_url:
+    name: Frigate URL
+    description: >-
+      Base URL of the Frigate instance Bosun protects — for example
+      http://homeassistant.local:5000 or the internal address of your Frigate
+      add-on.
+  connect_timeout:
+    name: Upstream connect timeout
+    description: >-
+      Seconds to wait when opening a connection to Frigate before giving up.
+      This bounds connection setup only, so it never cuts off snapshots or
+      video streams.
+  log_level:
+    name: Log level
+    description: How much detail Bosun writes to the add-on log.
+  api_keys:
+    name: API keys
+    description: >-
+      One entry per caller. Clients send the key in the X-API-Key header. A
+      request is allowed only when one of the key's rules matches both its HTTP
+      method and its path — everything else is denied.
+network:
+  8080/tcp: HTTP port clients use to reach Bosun
