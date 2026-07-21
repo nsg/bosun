@@ -4,7 +4,6 @@ slug: bosun
 description: API-key gateway with a default-deny allowlist in front of Frigate
 url: https://github.com/nsg/bosun
 arch:
-  - aarch64
   - amd64
 image: "ghcr.io/nsg/bosun-{arch}"
 init: false

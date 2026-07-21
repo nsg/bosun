@@ -101,16 +101,14 @@ exposes the same allowlist as native Home Assistant options; the entrypoint
 There are no git tags. A release is whatever is on `master`:
 
 - On every push to `master`, [`.github/workflows/build.yml`](.github/workflows/build.yml)
-  builds per-architecture images (`amd64`, `aarch64`) and publishes them to
-  `ghcr.io/nsg/bosun-<arch>`.
+  builds the `amd64` image and publishes it to `ghcr.io/nsg/bosun-amd64`.
 - Home Assistant pulls the image matching the `version` in
   [`bosun/config.yaml`](bosun/config.yaml). To ship an update, bump that
   `version` (and `Cargo.toml`), and push — Home Assistant then offers an
   **Update**.
 
-> One-time setup: after the first successful build, mark the GHCR packages
-> `bosun-amd64` and `bosun-aarch64` **public** so Home Assistant can pull them
-> without credentials.
+> One-time setup: after the first successful build, mark the GHCR package
+> `bosun-amd64` **public** so Home Assistant can pull it without credentials.
 
 ## Development
 
