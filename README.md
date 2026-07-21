@@ -74,6 +74,36 @@ curl http://localhost:8080/healthz   # -> ok
 Logging verbosity is controlled with `RUST_LOG`, e.g.
 `RUST_LOG=bosun=debug cargo run -- bosun.toml`.
 
+## Home Assistant add-on
+
+This repository is also a Home Assistant **custom add-on repository**. To install
+Bosun on Home Assistant:
+
+1. **Settings → Add-ons → Add-on Store → ⋮ → Repositories**, add
+   `https://github.com/nsg/bosun`.
+2. Install **Bosun**, configure `frigate_url` and `api_keys` in the add-on's
+   **Configuration** tab, then start it.
+
+The add-on ([`bosun/config.yaml`](bosun/config.yaml)) runs a prebuilt image and
+exposes the same allowlist as native Home Assistant options; the entrypoint
+([`docker/run.sh`](docker/run.sh)) translates those options into Bosun's config.
+
+### Releasing
+
+There are no git tags. A release is whatever is on `master`:
+
+- On every push to `master`, [`.github/workflows/build.yml`](.github/workflows/build.yml)
+  builds per-architecture images (`amd64`, `aarch64`) and publishes them to
+  `ghcr.io/nsg/bosun-<arch>`.
+- Home Assistant pulls the image matching the `version` in
+  [`bosun/config.yaml`](bosun/config.yaml). To ship an update, bump that
+  `version` (and `Cargo.toml`), and push — Home Assistant then offers an
+  **Update**.
+
+> One-time setup: after the first successful build, mark the GHCR packages
+> `bosun-amd64` and `bosun-aarch64` **public** so Home Assistant can pull them
+> without credentials.
+
 ## Development
 
 ```bash
