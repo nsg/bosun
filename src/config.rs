@@ -46,8 +46,13 @@ fn default_listen() -> String {
 
 impl Config {
     pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let raw = std::fs::read_to_string(&path).context("reading config file")?;
-        toml::from_str(&raw).context("parsing TOML config")
+        let path = path.as_ref();
+        let raw = std::fs::read_to_string(path).context("reading config file")?;
+        if path.extension().and_then(|e| e.to_str()) == Some("json") {
+            serde_json::from_str(&raw).context("parsing JSON config")
+        } else {
+            toml::from_str(&raw).context("parsing TOML config")
+        }
     }
 
     pub fn find_key(&self, secret: &str) -> Option<&ApiKey> {
@@ -246,6 +251,32 @@ mod tests {
         assert!(key.permits("GET", "/api/events"));
         assert!(!key.permits("POST", "/api/events"));
         assert!(cfg.find_key("wrong-secret").is_none());
+    }
+
+    #[test]
+    fn loads_json_config_by_extension() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("bosun-config-test.json");
+        std::fs::write(
+            &path,
+            r#"{
+                "listen": "0.0.0.0:8080",
+                "frigate": { "url": "http://frigate:5000" },
+                "api_keys": [
+                    { "name": "viewer", "key": "abc",
+                      "rules": [ { "methods": ["GET"], "paths": ["/api/events"] } ] }
+                ]
+            }"#,
+        )
+        .unwrap();
+
+        let cfg = Config::load(&path).expect("json config loads");
+        std::fs::remove_file(&path).ok();
+
+        assert_eq!(cfg.frigate.url, "http://frigate:5000");
+        let key = cfg.find_key("abc").expect("key resolves");
+        assert!(key.permits("GET", "/api/events"));
+        assert!(!key.permits("POST", "/api/events"));
     }
 
     #[test]
