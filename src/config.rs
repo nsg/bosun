@@ -53,21 +53,10 @@ fn default_connect_timeout() -> u64 {
 }
 
 impl Config {
-    /// Load config from `path`. JSON is the canonical format (produced by the
-    /// Home Assistant add-on UI). A `.toml` file is still parsed for backward
-    /// compatibility but is deprecated and logs a warning.
+    /// Load config from a JSON file (produced by the Home Assistant add-on UI).
     pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let path = path.as_ref();
         let raw = std::fs::read_to_string(path).context("reading config file")?;
-        if path.extension().and_then(|e| e.to_str()) == Some("toml") {
-            tracing::warn!(
-                "TOML configuration is deprecated; configure Bosun through the \
-                 Home Assistant add-on UI or a JSON config file (see README)"
-            );
-            toml::from_str(&raw).context("parsing TOML config")
-        } else {
-            serde_json::from_str(&raw).context("parsing JSON config")
-        }
+        serde_json::from_str(&raw).context("parsing JSON config")
     }
 
     pub fn find_key(&self, secret: &str) -> Option<&ApiKey> {
@@ -243,18 +232,15 @@ mod tests {
 
     #[test]
     fn parses_config_and_resolves_rules() {
-        let cfg: Config = toml::from_str(
-            r#"
-            listen = "0.0.0.0:9000"
-            [frigate]
-            url = "http://frigate:5000"
-            [[api_keys]]
-            name = "viewer"
-            key = "abc"
-            [[api_keys.rules]]
-            methods = ["GET"]
-            paths = ["/api/events"]
-            "#,
+        let cfg: Config = serde_json::from_str(
+            r#"{
+                "listen": "0.0.0.0:9000",
+                "frigate": { "url": "http://frigate:5000" },
+                "api_keys": [
+                    { "name": "viewer", "key": "abc",
+                      "rules": [ { "methods": ["GET"], "paths": ["/api/events"] } ] }
+                ]
+            }"#,
         )
         .unwrap();
 
@@ -269,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    fn loads_json_config_by_extension() {
+    fn loads_json_config_from_file() {
         let dir = std::env::temp_dir();
         let path = dir.join("bosun-config-test.json");
         std::fs::write(
@@ -296,13 +282,8 @@ mod tests {
 
     #[test]
     fn listen_defaults_and_keys_optional() {
-        let cfg: Config = toml::from_str(
-            r#"
-            [frigate]
-            url = "http://x:5000"
-            "#,
-        )
-        .unwrap();
+        let cfg: Config =
+            serde_json::from_str(r#"{ "frigate": { "url": "http://x:5000" } }"#).unwrap();
         assert_eq!(cfg.listen, "0.0.0.0:8080");
         assert_eq!(cfg.connect_timeout, 10);
         assert!(cfg.api_keys.is_empty());

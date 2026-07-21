@@ -3,5 +3,4 @@ target
 .github
 bosun
 *.md
-bosun.toml
 bosun.json

@@ -47,10 +47,6 @@ as the first argument). See [`bosun.example.json`](bosun.example.json).
 - **`connect_timeout`** — seconds to wait when opening a connection to Frigate
   (connection setup only; never truncates streamed responses). Defaults to `10`.
 
-> **Deprecated:** TOML config files (`bosun.toml`) are still parsed for backward
-> compatibility but log a deprecation warning. Use JSON, or the Home Assistant
-> add-on UI.
-
 ### Rules
 
 Each rule binds a set of HTTP methods to a set of path patterns. A request is

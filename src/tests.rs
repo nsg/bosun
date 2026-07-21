@@ -30,30 +30,22 @@ async fn spawn(app: Router) -> SocketAddr {
 async fn start_gateway() -> String {
     let upstream = spawn(Router::new().fallback(upstream_echo)).await;
 
-    let toml = format!(
-        r#"
-listen = "127.0.0.1:0"
-
-[frigate]
-url = "http://{upstream}"
-
-[[api_keys]]
-name = "viewer"
-key = "viewer-key"
-  [[api_keys.rules]]
-  methods = ["GET", "HEAD"]
-  paths = ["/api/events", "/api/*/latest.*"]
-
-[[api_keys]]
-name = "poster"
-key = "poster-key"
-  [[api_keys.rules]]
-  methods = ["POST"]
-  paths = ["/api/reviews/viewed"]
-"#
+    let json = format!(
+        r#"{{
+            "listen": "127.0.0.1:0",
+            "frigate": {{ "url": "http://{upstream}" }},
+            "api_keys": [
+                {{ "name": "viewer", "key": "viewer-key",
+                   "rules": [ {{ "methods": ["GET", "HEAD"],
+                                 "paths": ["/api/events", "/api/*/latest.*"] }} ] }},
+                {{ "name": "poster", "key": "poster-key",
+                   "rules": [ {{ "methods": ["POST"],
+                                 "paths": ["/api/reviews/viewed"] }} ] }}
+            ]
+        }}"#
     );
 
-    let config: Config = toml::from_str(&toml).unwrap();
+    let config: Config = serde_json::from_str(&json).unwrap();
     let app = build_app(config).unwrap();
     let bosun = spawn(app).await;
     format!("http://{bosun}")
